@@ -1,0 +1,1138 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base64与JSON处理工具</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3498db;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --purple: #9b59b6;
+            --teal: #1abc9c;
+            --dark: #1a1e2d;
+            --darker: #121621;
+            --light: #f0f0f0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--darker), #2c3e50, var(--darker));
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 20px auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            animation: fadeIn 1s ease;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            background: linear-gradient(to right, var(--primary), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            position: relative;
+            display: inline-block;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--success));
+            border-radius: 2px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            max-width: 600px;
+            margin: 20px auto 0;
+        }
+
+        .tabs {
+            display: flex;
+            background: rgba(30, 35, 50, 0.8);
+            border-radius: 12px;
+            margin-bottom: 25px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            background: rgba(52, 152, 219, 0.2);
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .tab:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .card {
+            background: rgba(25, 30, 45, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 25px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-header i {
+            font-size: 1.8rem;
+            margin-right: 15px;
+            background: linear-gradient(to right, var(--primary), var(--teal));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card-header h2 {
+            font-size: 1.6rem;
+            color: var(--light);
+        }
+
+        .textarea-container {
+            position: relative;
+            margin-bottom: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .textarea-container label {
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        textarea {
+            width: 100%;
+            flex-grow: 1;
+            min-height: 150px;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(20, 25, 40, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            font-size: 0.95rem;
+            resize: vertical;
+            transition: border-color 0.3s;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .char-count {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .btn-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button i {
+            font-size: 1rem;
+        }
+
+        .primary-btn {
+            background: linear-gradient(to right, var(--primary), #2980b9);
+            color: white;
+        }
+
+        .success-btn {
+            background: linear-gradient(to right, var(--success), #27ae60);
+            color: white;
+        }
+
+        .warning-btn {
+            background: linear-gradient(to right, var(--warning), #e67e22);
+            color: white;
+        }
+
+        .danger-btn {
+            background: linear-gradient(to right, var(--danger), #c0392b);
+            color: white;
+        }
+
+        .purple-btn {
+            background: linear-gradient(to right, var(--purple), #8e44ad);
+            color: white;
+        }
+
+        .teal-btn {
+            background: linear-gradient(to right, var(--teal), #16a085);
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .file-upload {
+            display: none;
+        }
+
+        .file-info {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(20, 25, 40, 0.5);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .file-info.active {
+            display: block;
+        }
+
+        .instructions {
+            background: rgba(25, 30, 45, 0.8);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .instructions h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .instructions h3 i {
+            background: linear-gradient(to right, var(--primary), var(--teal));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .instructions ul {
+            padding-left: 25px;
+            margin-bottom: 15px;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .note {
+            background: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid var(--danger);
+            padding: 12px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 15px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .detection-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(231, 76, 60, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            z-index: 10;
+            display: none;
+        }
+
+        .tool-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            .card-container {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .btn-container {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+            
+            .instructions {
+                padding: 20px;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(52, 152, 219, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-code"></i> Base64与JSON处理工具</h1>
+            <p class="subtitle">专业的Base64编码/解码和JSON格式化/压缩工具</p>
+        </header>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="base64">Base64 处理</div>
+            <div class="tab" data-tab="json">JSON 处理</div>
+            <div class="tab" data-tab="file">文件处理</div>
+        </div>
+        
+        <!-- Base64 处理面板 -->
+        <div class="tab-content active" id="base64-tab">
+            <div class="card-container">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-keyboard"></i>
+                        <h2>Base64 输入</h2>
+                    </div>
+                    
+                    <div class="textarea-container">
+                        <label for="base64Input">输入文本或Base64字符串：</label>
+                        <textarea id="base64Input" placeholder="在此输入要编码的文本，或要解码的Base64字符串..."></textarea>
+                        <div class="char-count" id="base64InputCount">0 字符</div>
+                    </div>
+                    
+                    <div class="btn-container">
+                        <button class="primary-btn" id="encodeBtn">
+                            <i class="fas fa-lock"></i> 编码
+                        </button>
+                        <button class="success-btn" id="decodeBtn">
+                            <i class="fas fa-lock-open"></i> 解码
+                        </button>
+                        <button class="purple-btn" id="formatBase64Btn">
+                            <i class="fas fa-align-left"></i> 格式化
+                        </button>
+                        <button class="warning-btn" id="copyBase64Btn">
+                            <i class="fas fa-copy"></i> 复制
+                        </button>
+                        <button class="danger-btn" id="clearBase64Btn">
+                            <i class="fas fa-trash-alt"></i> 清空
+                        </button>
+                    </div>
+                    
+                    <div class="tool-info">
+                        <div>Base64编码增加约33%大小</div>
+                        <div>支持UTF-8字符</div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-file-code"></i>
+                        <h2>Base64 结果</h2>
+                    </div>
+                    
+                    <div class="textarea-container">
+                        <label for="base64Result">编码/解码结果：</label>
+                        <textarea id="base64Result" placeholder="Base64编码或解码结果将显示在这里..." readonly></textarea>
+                        <div class="char-count" id="base64ResultCount">0 字符</div>
+                    </div>
+                    
+                    <div class="btn-container">
+                        <button class="teal-btn" id="toJsonBtn">
+                            <i class="fas fa-exchange-alt"></i> 转换为JSON处理
+                        </button>
+                    </div>
+                    
+                    <div class="tool-info">
+                        <div id="base64Type">未检测到内容</div>
+                        <div>最大长度: 10,000字符</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- JSON 处理面板 -->
+        <div class="tab-content" id="json-tab">
+            <div class="card-container">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-brackets-curly"></i>
+                        <h2>JSON 输入</h2>
+                    </div>
+                    
+                    <div class="textarea-container">
+                        <label for="jsonInput">输入JSON内容：</label>
+                        <textarea id="jsonInput" placeholder="在此输入JSON内容..."></textarea>
+                        <div class="char-count" id="jsonInputCount">0 字符</div>
+                    </div>
+                    
+                    <div class="btn-container">
+                        <button class="teal-btn" id="formatJsonBtn">
+                            <i class="fas fa-align-left"></i> 格式化
+                        </button>
+                        <button class="purple-btn" id="compressJsonBtn">
+                            <i class="fas fa-compress"></i> 压缩
+                        </button>
+                        <button class="warning-btn" id="copyJsonBtn">
+                            <i class="fas fa-copy"></i> 复制
+                        </button>
+                        <button class="danger-btn" id="clearJsonBtn">
+                            <i class="fas fa-trash-alt"></i> 清空
+                        </button>
+                    </div>
+                    
+                    <div class="tool-info">
+                        <div>压缩JSON可减少约30%大小</div>
+                        <div>支持嵌套结构</div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-file-code"></i>
+                        <h2>JSON 结果</h2>
+                    </div>
+                    
+                    <div class="textarea-container">
+                        <label for="jsonResult">格式化/压缩结果：</label>
+                        <textarea id="jsonResult" placeholder="JSON处理结果将显示在这里..." readonly></textarea>
+                        <div class="char-count" id="jsonResultCount">0 字符</div>
+                    </div>
+                    
+                    <div class="btn-container">
+                        <button class="primary-btn" id="toBase64Btn">
+                            <i class="fas fa-exchange-alt"></i> 转换为Base64
+                        </button>
+                    </div>
+                    
+                    <div class="tool-info">
+                        <div id="jsonType">未检测到内容</div>
+                        <div>最大深度: 50层</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 文件处理面板 -->
+        <div class="tab-content" id="file-tab">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-file-upload"></i>
+                    <h2>文件编码</h2>
+                </div>
+                
+                <div class="textarea-container">
+                    <label for="fileResult">文件Base64编码结果：</label>
+                    <textarea id="fileResult" placeholder="文件编码结果将显示在这里..." readonly></textarea>
+                    <div class="char-count" id="fileCharCount">0 字符</div>
+                </div>
+                
+                <div class="btn-container">
+                    <button class="primary-btn" id="fileBtn">
+                        <i class="fas fa-file"></i> 选择文件
+                    </button>
+                    <button class="purple-btn" id="formatFileBase64Btn">
+                        <i class="fas fa-align-left"></i> 格式化
+                    </button>
+                    <button class="warning-btn" id="copyFileBtn">
+                        <i class="fas fa-copy"></i> 复制
+                    </button>
+                    <button class="danger-btn" id="clearFileBtn">
+                        <i class="fas fa-trash-alt"></i> 清空
+                    </button>
+                </div>
+                
+                <input type="file" id="fileUpload" class="file-upload">
+                
+                <div class="file-info" id="fileInfo">
+                    <strong>文件信息：</strong>
+                    <div id="fileName"></div>
+                    <div id="fileSize"></div>
+                    <div id="fileType"></div>
+                </div>
+                
+                <div class="tool-info">
+                    <div>最大文件大小: 5MB</div>
+                    <div>支持所有文件类型</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3><i class="fas fa-info-circle"></i> 使用说明</h3>
+            <ul>
+                <li><strong>Base64编码</strong>：在输入区域输入文本，点击"编码"转换为Base64格式</li>
+                <li><strong>Base64解码</strong>：输入Base64字符串，点击"解码"还原原始文本</li>
+                <li><strong>JSON格式化</strong>：输入JSON内容，点击"格式化"美化输出</li>
+                <li><strong>JSON压缩</strong>：点击"压缩"将JSON压缩为一行</li>
+                <li><strong>文件编码</strong>：上传文件（最大5MB），自动转换为Base64编码</li>
+                <li><strong>转换功能</strong>：可在Base64和JSON处理之间转换内容</li>
+                <li><strong>复制功能</strong>：点击"复制"按钮将结果复制到剪贴板</li>
+            </ul>
+            
+            <div class="note">
+                <strong>注意：</strong> 工具会自动检测内容类型（文本/Base64/JSON）并给出提示
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>© 2023 Base64与JSON处理工具 | 专业的数据处理解决方案</p>
+    </footer>
+
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span>内容已复制到剪贴板</span>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取DOM元素
+            const base64Input = document.getElementById('base64Input');
+            const base64Result = document.getElementById('base64Result');
+            const base64InputCount = document.getElementById('base64InputCount');
+            const base64ResultCount = document.getElementById('base64ResultCount');
+            const base64Type = document.getElementById('base64Type');
+            
+            const jsonInput = document.getElementById('jsonInput');
+            const jsonResult = document.getElementById('jsonResult');
+            const jsonInputCount = document.getElementById('jsonInputCount');
+            const jsonResultCount = document.getElementById('jsonResultCount');
+            const jsonType = document.getElementById('jsonType');
+            
+            const fileResult = document.getElementById('fileResult');
+            const fileCharCount = document.getElementById('fileCharCount');
+            
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            // 更新字符计数
+            function updateCharCount(textarea, counterElement) {
+                counterElement.textContent = textarea.value.length + ' 字符';
+            }
+            
+            // 显示提示信息
+            function showToast(message) {
+                const toast = document.getElementById('toast');
+                toast.querySelector('span').textContent = message || '操作成功';
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            }
+            
+            // 检测内容类型
+            function detectContentType(content) {
+                if (!content) return 'unknown';
+                
+                // 检测是否是Base64
+                const base64Regex = /^[A-Za-z0-9+/=]+$/;
+                if (content.length > 20 && base64Regex.test(content.replace(/\s+/g, ''))) {
+                    return 'base64';
+                }
+                
+                // 检测是否是JSON
+                try {
+                    JSON.parse(content);
+                    return 'json';
+                } catch (e) {
+                    // 不是JSON
+                }
+                
+                return 'text';
+            }
+            
+            // Base64格式化函数
+            function formatBase64(base64) {
+                // 每76个字符插入一个换行符（遵循MIME标准）
+                return base64.replace(/(.{76})/g, '$1\n');
+            }
+            
+            // JSON格式化函数
+            function formatJson(json) {
+                try {
+                    const parsed = JSON.parse(json);
+                    return JSON.stringify(parsed, null, 4);
+                } catch (e) {
+                    return json;
+                }
+            }
+            
+            // JSON压缩函数
+            function compressJson(json) {
+                try {
+                    const parsed = JSON.parse(json);
+                    return JSON.stringify(parsed);
+                } catch (e) {
+                    return json;
+                }
+            }
+            
+            // 更新内容类型显示
+            function updateContentTypes() {
+                const base64InputType = detectContentType(base64Input.value);
+                const base64ResultType = detectContentType(base64Result.value);
+                const jsonInputType = detectContentType(jsonInput.value);
+                const jsonResultType = detectContentType(jsonResult.value);
+                
+                const types = {
+                    'base64': {text: 'Base64 字符串', color: '#3498db'},
+                    'json': {text: 'JSON 内容', color: '#2ecc71'},
+                    'text': {text: '普通文本', color: '#9b59b6'},
+                    'unknown': {text: '未检测到内容', color: '#7f8c8d'}
+                };
+                
+                base64Type.textContent = base64ResultType !== 'unknown' ? 
+                    types[base64ResultType].text : types[base64InputType].text;
+                base64Type.style.color = base64ResultType !== 'unknown' ? 
+                    types[base64ResultType].color : types[base64InputType].color;
+                
+                jsonType.textContent = jsonResultType !== 'unknown' ? 
+                    types[jsonResultType].text : types[jsonInputType].text;
+                jsonType.style.color = jsonResultType !== 'unknown' ? 
+                    types[jsonResultType].color : types[jsonInputType].color;
+            }
+            
+            // 标签切换功能
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // 移除所有active类
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(tc => tc.classList.remove('active'));
+                    
+                    // 添加active类
+                    tab.classList.add('active');
+                    document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+                });
+            });
+            
+            // Base64输入事件监听
+            base64Input.addEventListener('input', function() {
+                updateCharCount(base64Input, base64InputCount);
+                updateContentTypes();
+            });
+            
+            // Base64结果事件监听
+            base64Result.addEventListener('input', function() {
+                updateCharCount(base64Result, base64ResultCount);
+                updateContentTypes();
+            });
+            
+            // JSON输入事件监听
+            jsonInput.addEventListener('input', function() {
+                updateCharCount(jsonInput, jsonInputCount);
+                updateContentTypes();
+            });
+            
+            // JSON结果事件监听
+            jsonResult.addEventListener('input', function() {
+                updateCharCount(jsonResult, jsonResultCount);
+                updateContentTypes();
+            });
+            
+            // 文件结果事件监听
+            fileResult.addEventListener('input', function() {
+                updateCharCount(fileResult, fileCharCount);
+            });
+            
+            // 编码按钮事件
+            document.getElementById('encodeBtn').addEventListener('click', function() {
+                if (base64Input.value.trim() === '') {
+                    showToast('请输入要编码的文本');
+                    return;
+                }
+                
+                try {
+                    // 处理UTF-8字符的编码
+                    const encoded = btoa(unescape(encodeURIComponent(base64Input.value)));
+                    base64Result.value = encoded;
+                    updateCharCount(base64Result, base64ResultCount);
+                    updateContentTypes();
+                    
+                    showToast('编码成功');
+                } catch (e) {
+                    showToast('编码过程中发生错误: ' + e.message);
+                }
+            });
+            
+            // 解码按钮事件
+            document.getElementById('decodeBtn').addEventListener('click', function() {
+                if (base64Input.value.trim() === '') {
+                    showToast('请输入要解码的Base64字符串');
+                    return;
+                }
+                
+                try {
+                    // 清理Base64字符串（移除换行符和空格）
+                    const cleanedBase64 = base64Input.value.replace(/\s+/g, '');
+                    
+                    // 处理UTF-8字符的解码
+                    const decoded = decodeURIComponent(escape(atob(cleanedBase64)));
+                    base64Result.value = decoded;
+                    updateCharCount(base64Result, base64ResultCount);
+                    updateContentTypes();
+                    
+                    showToast('解码成功');
+                } catch (e) {
+                    showToast('解码失败：无效的Base64字符串或格式错误');
+                }
+            });
+            
+            // Base64格式化按钮事件
+            document.getElementById('formatBase64Btn').addEventListener('click', function() {
+                const content = base64Result.value.trim() || base64Input.value.trim();
+                
+                if (!content) {
+                    showToast('请输入Base64内容');
+                    return;
+                }
+                
+                try {
+                    // 清理并格式化Base64
+                    const cleaned = content.replace(/\s+/g, '');
+                    base64Result.value = formatBase64(cleaned);
+                    updateCharCount(base64Result, base64ResultCount);
+                    showToast('Base64格式化成功');
+                } catch (e) {
+                    showToast('格式化失败：内容不是有效的Base64');
+                }
+            });
+            
+            // JSON格式化按钮事件
+            document.getElementById('formatJsonBtn').addEventListener('click', function() {
+                const content = jsonInput.value.trim();
+                
+                if (!content) {
+                    showToast('请输入JSON内容');
+                    return;
+                }
+                
+                try {
+                    // 尝试格式化JSON
+                    jsonResult.value = formatJson(content);
+                    updateCharCount(jsonResult, jsonResultCount);
+                    updateContentTypes();
+                    showToast('JSON格式化成功');
+                } catch (e) {
+                    showToast('格式化失败：内容不是有效的JSON');
+                }
+            });
+            
+            // JSON压缩按钮事件
+            document.getElementById('compressJsonBtn').addEventListener('click', function() {
+                const content = jsonInput.value.trim();
+                
+                if (!content) {
+                    showToast('请输入JSON内容');
+                    return;
+                }
+                
+                try {
+                    // 尝试压缩JSON
+                    jsonResult.value = compressJson(content);
+                    updateCharCount(jsonResult, jsonResultCount);
+                    updateContentTypes();
+                    showToast('JSON压缩成功');
+                } catch (e) {
+                    showToast('压缩失败：内容不是有效的JSON');
+                }
+            });
+            
+            // 转换为JSON处理按钮
+            document.getElementById('toJsonBtn').addEventListener('click', function() {
+                const content = base64Result.value.trim() || base64Input.value.trim();
+                
+                if (!content) {
+                    showToast('没有内容可转换');
+                    return;
+                }
+                
+                // 切换到JSON标签
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(tc => tc.classList.remove('active'));
+                document.querySelector('.tab[data-tab="json"]').classList.add('active');
+                document.getElementById('json-tab').classList.add('active');
+                
+                // 填充内容到JSON输入
+                jsonInput.value = content;
+                updateCharCount(jsonInput, jsonInputCount);
+                updateContentTypes();
+                showToast('内容已转移到JSON处理区');
+            });
+            
+            // 转换为Base64按钮
+            document.getElementById('toBase64Btn').addEventListener('click', function() {
+                const content = jsonResult.value.trim() || jsonInput.value.trim();
+                
+                if (!content) {
+                    showToast('没有内容可转换');
+                    return;
+                }
+                
+                // 切换到Base64标签
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(tc => tc.classList.remove('active'));
+                document.querySelector('.tab[data-tab="base64"]').classList.add('active');
+                document.getElementById('base64-tab').classList.add('active');
+                
+                // 填充内容到Base64输入
+                base64Input.value = content;
+                updateCharCount(base64Input, base64InputCount);
+                updateContentTypes();
+                showToast('内容已转移到Base64处理区');
+            });
+            
+            // 文件Base64格式化按钮
+            document.getElementById('formatFileBase64Btn').addEventListener('click', function() {
+                if (fileResult.value.trim() === '') {
+                    showToast('没有内容可格式化');
+                    return;
+                }
+                
+                try {
+                    // 清理并格式化Base64
+                    const cleaned = fileResult.value.replace(/\s+/g, '');
+                    fileResult.value = formatBase64(cleaned);
+                    updateCharCount(fileResult, fileCharCount);
+                    showToast('Base64格式化成功');
+                } catch (e) {
+                    showToast('格式化失败：内容不是有效的Base64');
+                }
+            });
+            
+            // 清空Base64按钮
+            document.getElementById('clearBase64Btn').addEventListener('click', function() {
+                base64Input.value = '';
+                base64Result.value = '';
+                updateCharCount(base64Input, base64InputCount);
+                updateCharCount(base64Result, base64ResultCount);
+                updateContentTypes();
+                showToast('Base64区域已清空');
+            });
+            
+            // 清空JSON按钮
+            document.getElementById('clearJsonBtn').addEventListener('click', function() {
+                jsonInput.value = '';
+                jsonResult.value = '';
+                updateCharCount(jsonInput, jsonInputCount);
+                updateCharCount(jsonResult, jsonResultCount);
+                updateContentTypes();
+                showToast('JSON区域已清空');
+            });
+            
+            // 清空文件按钮
+            document.getElementById('clearFileBtn').addEventListener('click', function() {
+                fileResult.value = '';
+                document.getElementById('fileInfo').classList.remove('active');
+                document.getElementById('fileUpload').value = '';
+                updateCharCount(fileResult, fileCharCount);
+                showToast('文件区域已清空');
+            });
+            
+            // 修复的复制功能 - 使用更可靠的复制方法
+            function copyToClipboard(text) {
+                if (!text) {
+                    return false;
+                }
+                
+                // 创建一个临时textarea元素
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.top = 0;
+                textArea.style.left = 0;
+                textArea.style.opacity = 0;
+                
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                try {
+                    // 尝试使用现代Clipboard API
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(text);
+                        return true;
+                    } 
+                    // 回退方案
+                    else if (document.execCommand('copy')) {
+                        document.execCommand('copy');
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } catch (err) {
+                    console.error('复制失败:', err);
+                    return false;
+                } finally {
+                    document.body.removeChild(textArea);
+                }
+            }
+            
+            // 复制Base64按钮
+            document.getElementById('copyBase64Btn').addEventListener('click', function() {
+                const content = base64Result.value.trim() || base64Input.value.trim();
+                
+                if (!content) {
+                    showToast('没有内容可复制');
+                    return;
+                }
+                
+                if (copyToClipboard(content)) {
+                    showToast('Base64内容已复制');
+                } else {
+                    showToast('复制失败，请手动复制内容');
+                }
+            });
+            
+            // 复制JSON按钮
+            document.getElementById('copyJsonBtn').addEventListener('click', function() {
+                const content = jsonResult.value.trim() || jsonInput.value.trim();
+                
+                if (!content) {
+                    showToast('没有内容可复制');
+                    return;
+                }
+                
+                if (copyToClipboard(content)) {
+                    showToast('JSON内容已复制');
+                } else {
+                    showToast('复制失败，请手动复制内容');
+                }
+            });
+            
+            // 复制文件按钮
+            document.getElementById('copyFileBtn').addEventListener('click', function() {
+                if (fileResult.value.trim() === '') {
+                    showToast('没有内容可复制');
+                    return;
+                }
+                
+                if (copyToClipboard(fileResult.value)) {
+                    showToast('文件Base64已复制');
+                } else {
+                    showToast('复制失败，请手动复制内容');
+                }
+            });
+            
+            // 文件上传按钮
+            document.getElementById('fileBtn').addEventListener('click', function() {
+                document.getElementById('fileUpload').click();
+            });
+            
+            // 文件上传处理
+            document.getElementById('fileUpload').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                // 检查文件大小（最大5MB）
+                if (file.size > 5 * 1024 * 1024) {
+                    showToast('文件大小超过5MB限制');
+                    return;
+                }
+                
+                // 显示文件信息
+                document.getElementById('fileName').textContent = '文件名: ' + file.name;
+                document.getElementById('fileSize').textContent = '大小: ' + formatFileSize(file.size);
+                document.getElementById('fileType').textContent = '类型: ' + (file.type || '未知');
+                document.getElementById('fileInfo').classList.add('active');
+                
+                // 读取文件并转换为Base64
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    // 移除Base64字符串前的data URL部分
+                    const base64String = event.target.result.split(',')[1];
+                    fileResult.value = base64String;
+                    updateCharCount(fileResult, fileCharCount);
+                    showToast('文件编码成功');
+                };
+                reader.onerror = function() {
+                    showToast('读取文件时发生错误');
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            // 格式化文件大小
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+            
+            // 初始化
+            function init() {
+                // 初始化字符计数
+                updateCharCount(base64Input, base64InputCount);
+                updateCharCount(base64Result, base64ResultCount);
+                updateCharCount(jsonInput, jsonInputCount);
+                updateCharCount(jsonResult, jsonResultCount);
+                updateCharCount(fileResult, fileCharCount);
+                
+                // 初始化内容类型
+                updateContentTypes();
+                
+                // 添加示例内容
+                base64Input.value = 'ewogICAgIm5hbWUiOiAiQmFzZTY0IEdlbmVyYXRvciIsCiAgICAiZGVzY3JpcHRpb24iOiAi5Y6f55CG5LqL5Lu257yW6K+R5ZKM6Kej56CB5LqL5Lu2IiwKICAgICJ2ZXJzaW9uIjogIjEuMC4wIiwKICAgICJhdXRob3IiOiAi5byg5LiJIiwKICAgICJkYXRlIjogIjIwMjMtMTItMzEiCn0=';
+                updateCharCount(base64Input, base64InputCount);
+                
+                jsonInput.value = '{"name":"JSON处理器","description":"专业的JSON格式化和压缩工具","version":"1.2.0","author":"DeepSeek","date":"2025-08-03"}';
+                updateCharCount(jsonInput, jsonInputCount);
+                
+                updateContentTypes();
+            }
+            
+            // 页面加载完成时初始化
+            window.addEventListener('load', init);
+        });
+    </script>
+</body>
+</html>

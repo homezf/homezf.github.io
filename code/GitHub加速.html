@@ -1,0 +1,633 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub加速</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .marquee-ad {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 8px 0;
+            text-align: center;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .marquee-ad a {
+            background: linear-gradient(90deg, #f72585, #4361ee, #4cc9f0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            display: inline-block;
+            padding-left: 100%;
+            animation: marquee 15s linear infinite;
+            white-space: nowrap;
+        }
+        
+        .marquee-ad a:hover {
+            text-decoration: underline;
+        }
+        
+        @keyframes marquee {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+        
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+            color: #fff;
+            padding-top: 40px;
+        }
+        
+        #video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.5s ease;
+            transform: translateY(0);
+        }
+        
+        .container:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #4cc9f0;
+            font-size: 1.8rem;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #e0e0e0;
+            font-size: 0.9rem;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 0 2px rgba(76, 201, 240, 0.5);
+        }
+        
+        .proxy-scroll-container {
+            position: relative;
+            width: 100%;
+            height: 100px;
+            margin-bottom: 15px;
+        }
+        
+        .proxy-scroll-wrapper {
+            width: 100%;
+            height: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            white-space: nowrap;
+            padding: 10px 5px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            scrollbar-width: thin;
+            scrollbar-color: rgba(76, 201, 240, 0.6) rgba(255, 255, 255, 0.1);
+        }
+        
+        .proxy-scroll-wrapper::-webkit-scrollbar {
+            height: 6px;
+        }
+        
+        .proxy-scroll-wrapper::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        .proxy-scroll-wrapper::-webkit-scrollbar-thumb {
+            background: rgba(76, 201, 240, 0.6);
+            border-radius: 4px;
+        }
+        
+        .proxy-scroll-wrapper::-webkit-scrollbar-thumb:hover {
+            background: rgba(76, 201, 240, 0.8);
+        }
+        
+        .proxy-item {
+            display: inline-block;
+            width: 120px;
+            height: 70px;
+            margin: 0 8px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .proxy-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-3px);
+        }
+        
+        .proxy-item.selected {
+            background: rgba(76, 201, 240, 0.2);
+            border-color: rgba(76, 201, 240, 0.8);
+            box-shadow: 0 5px 15px rgba(76, 201, 240, 0.3);
+        }
+        
+        .proxy-item.selected::after {
+            content: "✓";
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 18px;
+            height: 18px;
+            background: rgba(76, 201, 240, 0.9);
+            border-radius: 50%;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .proxy-name {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #e0e0e0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .proxy-url {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #4cc9f0 0%, #4361ee 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(76, 201, 240, 0.4);
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            display: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .result-title {
+            margin-bottom: 8px;
+            color: #4cc9f0;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .result-link {
+            word-break: break-all;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+        }
+        
+        .copy-btn {
+            background: linear-gradient(135deg, #f72585 0%, #7209b7 100%);
+            width: auto;
+            padding: 6px 12px;
+            margin-top: 8px;
+            font-size: 0.85rem;
+        }
+        
+        .example {
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .music-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .music-control:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.1);
+        }
+        
+        .music-control i {
+            color: #fff;
+            font-size: 20px;
+        }
+        
+        .music-control.playing .play-icon {
+            display: none;
+        }
+        
+        .music-control .pause-icon {
+            display: none;
+        }
+        
+        .music-control.playing .pause-icon {
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.6rem;
+            }
+            
+            .container:hover {
+                transform: translateY(-5px);
+            }
+            
+            .proxy-scroll-container {
+                height: 90px;
+            }
+            
+            .proxy-item {
+                width: 110px;
+                height: 65px;
+            }
+            
+            .music-control {
+                bottom: 15px;
+                right: 15px;
+                width: 45px;
+                height: 45px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.4rem;
+            }
+            
+            .proxy-scroll-container {
+                height: 80px;
+            }
+            
+            .proxy-item {
+                width: 100px;
+                height: 60px;
+            }
+            
+            input, select, .select-trigger {
+                padding: 8px 10px;
+            }
+            
+            .music-control {
+                bottom: 10px;
+                right: 10px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .music-control i {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="marquee-ad">
+        <a href="" target="_blank">ZF影视</a>
+    </div>
+    
+    <video id="video-background" autoplay muted loop playsinline>
+        <source src="1.mp4">
+    </video>
+    
+    <audio id="background-music" loop>
+        <source src="1.mp3" type="audio/mpeg">
+    </audio>
+    
+    <div class="overlay"></div>
+    
+    <div class="container">
+        <h1>GitHub加速</h1>
+        
+        <div class="input-group">
+            <label for="github-url">GitHub原始链接</label>
+            <input type="text" id="github-url" placeholder="例如: https://raw.githubusercontent.com/user/repo/branch/file">
+        </div>
+        
+        <div class="input-group">
+            <label>选择代理站点↔️</label>
+            <div class="proxy-scroll-container">
+                <div class="proxy-scroll-wrapper" id="proxy-scroll-wrapper">
+                </div>
+            </div>
+        </div>
+        
+        <button id="generate-btn">生成加速链接</button>
+        
+        <div class="result" id="result">
+            <div class="result-title">生成的加速链接:</div>
+            <div class="result-link" id="result-link"></div>
+            <button class="copy-btn" id="copy-btn">复制链接</button>
+        </div>
+    </div>
+    
+    <div class="music-control playing" id="music-control">
+        <i class="play-icon">♪</i>
+        <i class="pause-icon">❚❚</i>
+    </div>
+
+
+    <script>
+        const proxySites = [
+            { name: "gh-proxy", url: "https://gh-proxy.org" },
+            { name: "v6.gh-proxy", url: "https://v6.gh-proxy.org" },
+            { name: "hk.gh-proxy", url: "https://hk.gh-proxy.org" },
+            { name: "cdn.gh-proxy", url: "https://cdn.gh-proxy.org" },
+            { name: "edgeone.gh-proxy", url: "https://edgeone.gh-proxy.org" },
+            { name: "ghfile", url: "https://ghfile.geekertao.top" },
+            { name: "gh.llkk", url: "https://gh.llkk.cc" },
+            { name: "proxy.frp", url: "https://proxy.frp.gs" },
+            { name: "daili.korice", url: "https://daili.korice.eu.org" },
+            { name: "全网代理加速", url: "https://proxy.api.030101.xyz" }
+        ];
+
+        const proxyScrollWrapper = document.getElementById('proxy-scroll-wrapper');
+        let selectedProxy = proxySites[0];
+        
+        proxySites.forEach(site => {
+            const proxyItem = document.createElement('div');
+            proxyItem.className = 'proxy-item';
+            if (site.name === selectedProxy.name) proxyItem.classList.add('selected');
+            
+            proxyItem.innerHTML = `
+                <div class="proxy-name">${site.name}</div>
+                <div class="proxy-url">${site.url.replace('https://', '')}</div>
+            `;
+            
+            proxyItem.addEventListener('click', function() {
+                selectedProxy = site;
+                
+                document.querySelectorAll('.proxy-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                this.classList.add('selected');
+                
+                this.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            });
+            
+            proxyScrollWrapper.appendChild(proxyItem);
+        });
+
+        document.getElementById('generate-btn').addEventListener('click', function() {
+            let githubUrl = document.getElementById('github-url').value.trim();
+            
+            if (!githubUrl) {
+                alert('请输入GitHub链接');
+                return;
+            }
+            
+            let acceleratedUrl;
+            if (selectedProxy.url === 'https://proxy.api.030101.xyz') {
+                let cleanUrl = githubUrl.replace(/^https?:\/\//i, '');
+                acceleratedUrl = selectedProxy.url + '/' + cleanUrl;
+            } else {
+                acceleratedUrl = selectedProxy.url + '/' + githubUrl;
+            }
+            
+            document.getElementById('result-link').textContent = acceleratedUrl;
+            document.getElementById('result').style.display = 'block';
+        });
+
+        document.getElementById('copy-btn').addEventListener('click', function() {
+            const resultLink = document.getElementById('result-link').textContent;
+            
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(resultLink)
+                    .then(() => {
+                        const originalText = this.textContent;
+                        this.textContent = '已复制!';
+                        setTimeout(() => {
+                            this.textContent = originalText;
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('复制失败: ', err);
+                        alert('复制失败，请手动复制链接');
+                    });
+            } else {
+                const textArea = document.createElement('textarea');
+                textArea.value = resultLink;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                const originalText = this.textContent;
+                this.textContent = '已复制!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 2000);
+            }
+        });
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const video = document.getElementById('video-background');
+            
+            const playPromise = video.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    console.log('视频自动播放成功');
+                }).catch(error => {
+                    console.log('视频自动播放失败:', error);
+                });
+            }
+        });
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const music = document.getElementById('background-music');
+            const musicControl = document.getElementById('music-control');
+            
+            music.volume = 0.5;
+            music.muted = false;
+            
+            function forcePlayMusic() {
+                const playPromise = music.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        musicControl.classList.add('playing');
+                        console.log('音乐播放成功');
+                    }).catch(error => {
+                        console.log('直接播放失败，尝试静音播放策略:', error);
+                        
+                        music.muted = true;
+                        const mutedPlayPromise = music.play();
+                        
+                        if (mutedPlayPromise !== undefined) {
+                            mutedPlayPromise.then(() => {
+                                music.muted = false;
+                                musicControl.classList.add('playing');
+                                console.log('静音播放成功，已取消静音');
+                            }).catch(mutedError => {
+                                console.log('静音播放也失败:', mutedError);
+                            });
+                        }
+                    });
+                }
+            }
+            
+            forcePlayMusic();
+            
+            let userInteracted = false;
+            document.addEventListener('click', function() {
+                if (!userInteracted) {
+                    userInteracted = true;
+                    console.log('用户已与页面交互，再次尝试播放音乐');
+                    forcePlayMusic();
+                }
+            });
+            
+            musicControl.addEventListener('click', function() {
+                if (music.paused) {
+                    forcePlayMusic();
+                } else {
+                    music.pause();
+                    musicControl.classList.remove('playing');
+                }
+            });
+            
+            document.addEventListener('keydown', function(e) {
+                if (e.code === 'Space' && !e.target.matches('input, textarea')) {
+                    e.preventDefault();
+                    musicControl.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
