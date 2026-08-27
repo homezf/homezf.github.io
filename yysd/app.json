@@ -1,7 +1,0 @@
-{
-"sites":[
-{"key":"在线商店","name":"🛒在线商店","type":3,"api":"csp_Market","searchable":0,"changeable":0,"ext":"https://gh-proxy.com/https://github.com/homezf/01jar/raw/main/应用商店.json"},
-{"key":"push_agent","name":"📢手机｜推送","type":3,"api":"csp_Push","searchable":0,"filterable":0,"changeable":0}],
-"spider":"https://gh-proxy.com/https://github.com/homezf/01jar/raw/main/vox.jar;md5;956c90df1e5219ba7cb75ab31af36361",
-"logo":"https://gh-proxy.com/https://github.com/homezf/01jar/raw/main/pic.png"
-}
